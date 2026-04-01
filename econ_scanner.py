@@ -22,10 +22,40 @@ import requests
 from datetime import datetime, timezone
 from math import erf, sqrt
 
+from cleveland_fed_nowcast import get_cpi_nowcast_mom, get_nowcasts
+
 KALSHI_BASE = "https://api.elections.kalshi.com/trade-api/v2"
 FRED_BASE = "https://api.stlouisfed.org/fred"
 
 MIN_EDGE_PCT = 8
+
+# Month abbreviations for Kalshi event tickers
+_MONTH_ABBR = {
+    1: "JAN", 2: "FEB", 3: "MAR", 4: "APR", 5: "MAY", 6: "JUN",
+    7: "JUL", 8: "AUG", 9: "SEP", 10: "OCT", 11: "NOV", 12: "DEC",
+}
+
+
+def nowcast_event_ticker(as_of_str, prefix):
+    """Return the Kalshi event ticker that a Cleveland Fed nowcast applies to.
+
+    The nowcast covers the CURRENT month. CPI/PCE for month X is released
+    ~2 weeks into month X+1, so the March 2026 nowcast matches an event
+    like KXCPI-26MAR or KXPCECORE-26MAR.
+
+    Parameters
+    ----------
+    as_of_str : str   e.g. "2026-03-28"
+    prefix    : str   e.g. "KXCPI" or "KXPCECORE"
+
+    Returns
+    -------
+    str  e.g. "KXCPI-26MAR"
+    """
+    dt = datetime.strptime(as_of_str[:10], "%Y-%m-%d")
+    yy = dt.year % 100
+    mon = _MONTH_ABBR[dt.month]
+    return f"{prefix}-{yy}{mon}"
 
 
 # ── FRED API ────────────────────────────────────────────────────────────────
@@ -162,15 +192,28 @@ def scan_fed_markets():
 # ── CPI Scanner ─────────────────────────────────────────────────────────────
 
 def scan_cpi_markets():
-    """Compare Kalshi CPI markets to latest CPI data and nowcast."""
+    """Compare Kalshi CPI markets to Cleveland Fed nowcast + FRED data."""
     print(f"\n  {'='*70}")
     print(f"  CPI / INFLATION MARKETS (KXCPI)")
     print(f"  {'='*70}")
 
+    # Fetch Cleveland Fed nowcast
+    nowcast = None
+    try:
+        nowcast = get_cpi_nowcast_mom()
+        if nowcast and nowcast.get("cpi_mom") is not None:
+            print(f"\n  Cleveland Fed Nowcast ({nowcast['as_of']}):")
+            print(f"    CPI MoM:      {nowcast['cpi_mom']:.4f}%")
+            print(f"    Core CPI MoM: {nowcast['core_cpi_mom']:.4f}%")
+            print(f"    PCE MoM:      {nowcast['pce_mom']:.4f}%")
+            print(f"    Core PCE MoM: {nowcast['core_pce_mom']:.4f}%")
+    except Exception as e:
+        print(f"\n  Cleveland Fed nowcast unavailable: {e}")
+
     cpi_data = get_latest_cpi()
     if cpi_data:
-        print(f"\n  Latest CPI: {cpi_data['value']:.1f} ({cpi_data['date']})")
-        print(f"  Month-over-month change: {cpi_data['mom_pct']:.2f}%")
+        print(f"\n  Latest actual CPI: {cpi_data['value']:.1f} ({cpi_data['date']})")
+        print(f"  Last actual MoM change: {cpi_data['mom_pct']:.2f}%")
 
     markets = get_kalshi_markets("KXCPI")
     if not markets:
@@ -183,6 +226,12 @@ def scan_cpi_markets():
         et = m.get("event_ticker", "")
         events.setdefault(et, []).append(m)
 
+    # Determine which event the nowcast actually covers (current month only)
+    nowcast_covers_event = None
+    if nowcast and nowcast.get("cpi_mom") is not None and nowcast.get("as_of"):
+        nowcast_covers_event = nowcast_event_ticker(nowcast["as_of"], "KXCPI")
+        print(f"  Nowcast applies to event: {nowcast_covers_event}")
+
     edges = []
     for event_ticker in sorted(events.keys()):
         event_markets = events[event_ticker]
@@ -192,7 +241,21 @@ def scan_cpi_markets():
         print(f"  Close: {event_markets[0].get('close_time', '')[:10]}")
         rules = (event_markets[0].get('rules_primary') or '')[:200]
         print(f"  Rules: {rules}")
-        print(f"  {'Bracket':<25} {'YES ask':>8} {'YES bid':>8} {'Vol':>10}")
+
+        # Only use the nowcast for the specific event it covers
+        use_nowcast = (
+            nowcast_covers_event is not None
+            and event_ticker == nowcast_covers_event
+        )
+        cpi_mom_nowcast = nowcast["cpi_mom"] if use_nowcast else None
+
+        if use_nowcast:
+            print(f"  Nowcast CPI MoM: {cpi_mom_nowcast:.4f}%")
+            print(f"  {'Bracket':<25} {'YES ask':>8} {'Model%':>8} {'Edge':>7}")
+        else:
+            if nowcast_covers_event is not None and event_ticker != nowcast_covers_event:
+                print(f"  INFO: Nowcast does not cover this month — showing market prices only")
+            print(f"  {'Bracket':<25} {'YES ask':>8} {'YES bid':>8} {'Vol':>10}")
         print(f"  {'-'*55}")
 
         for m in event_markets:
@@ -213,7 +276,44 @@ def scan_cpi_markets():
             yes_ask = m.get("yes_ask_dollars", "?")
             yes_bid = m.get("yes_bid_dollars", "?")
             vol = int(float(m.get("volume_fp") or 0))
-            print(f"  {label:<25} {yes_ask:>8} {yes_bid:>8} {vol:>10,}")
+
+            # Calculate model probability using Cleveland Fed nowcast
+            model_pct = ""
+            edge = ""
+            if use_nowcast and yes_ask != "?":
+                # Cleveland Fed nowcast typical error: ~0.05% MoM near release,
+                # ~0.10% at start of month. Use 0.08% as reasonable spread.
+                spread = 0.08
+                floor_val = float(floor) if floor is not None else -999
+                cap_val = float(cap) if cap is not None else 999
+
+                def ncdf(x, mu, s):
+                    return 0.5 * (1.0 + erf((x - mu) / (s * sqrt(2.0))))
+
+                p_below_cap = ncdf(cap_val, cpi_mom_nowcast, spread) if cap_val < 900 else 1.0
+                p_below_floor = ncdf(floor_val, cpi_mom_nowcast, spread) if floor_val > -900 else 0.0
+                prob = p_below_cap - p_below_floor
+                model_pct = f"{prob:.0%}"
+
+                mkt_prob = float(yes_ask)
+                e = (prob - mkt_prob) * 100
+                edge = f"{e:+.1f}%"
+
+                if abs(e) > MIN_EDGE_PCT:
+                    signal = "BUY YES" if e > 0 else "BUY NO"
+                    edges.append({
+                        "ticker": m["ticker"],
+                        "label": label,
+                        "signal": signal,
+                        "model_prob": prob,
+                        "market_prob": mkt_prob,
+                        "edge": e,
+                    })
+
+            if use_nowcast:
+                print(f"  {label:<25} {yes_ask:>8} {model_pct:>8} {edge:>7}")
+            else:
+                print(f"  {label:<25} {yes_ask:>8} {yes_bid:>8} {vol:>10,}")
 
     return edges
 
@@ -311,10 +411,21 @@ def scan_gdp_markets():
 # ── PCE Scanner ─────────────────────────────────────────────────────────────
 
 def scan_pce_markets():
-    """Scan Core PCE markets."""
+    """Scan Core PCE markets with Cleveland Fed nowcast."""
     print(f"\n  {'='*70}")
     print(f"  CORE PCE MARKETS (KXPCECORE)")
     print(f"  {'='*70}")
+
+    # Fetch Cleveland Fed nowcast for PCE
+    nowcast = None
+    try:
+        nowcast = get_cpi_nowcast_mom()
+        if nowcast and nowcast.get("core_pce_mom") is not None:
+            print(f"\n  Cleveland Fed Nowcast ({nowcast['as_of']}):")
+            print(f"    Core PCE MoM: {nowcast['core_pce_mom']:.4f}%")
+            print(f"    PCE MoM:      {nowcast['pce_mom']:.4f}%")
+    except Exception as e:
+        print(f"\n  Cleveland Fed nowcast unavailable: {e}")
 
     markets = get_kalshi_markets("KXPCECORE")
     if not markets:
@@ -326,22 +437,90 @@ def scan_pce_markets():
         et = m.get("event_ticker", "")
         events.setdefault(et, []).append(m)
 
+    # Determine which event the nowcast actually covers (current month only)
+    nowcast_covers_event = None
+    if nowcast and nowcast.get("core_pce_mom") is not None and nowcast.get("as_of"):
+        nowcast_covers_event = nowcast_event_ticker(nowcast["as_of"], "KXPCECORE")
+        print(f"  Nowcast applies to event: {nowcast_covers_event}")
+
+    edges = []
     for event_ticker in sorted(events.keys()):
         event_markets = events[event_ticker]
         event_markets.sort(key=lambda m: float(m.get("floor_strike") or m.get("cap_strike") or 0))
 
         print(f"\n  Event: {event_ticker}")
         print(f"  Close: {event_markets[0].get('close_time', '')[:10]}")
-        print(f"  {'Bracket':<25} {'YES ask':>8} {'Vol':>10}")
-        print(f"  {'-'*45}")
+
+        # Only use the nowcast for the specific event it covers
+        use_nowcast = (
+            nowcast_covers_event is not None
+            and event_ticker == nowcast_covers_event
+        )
+        core_pce_nowcast = nowcast["core_pce_mom"] if use_nowcast else None
+
+        if use_nowcast:
+            print(f"  Nowcast Core PCE MoM: {core_pce_nowcast:.4f}%")
+            print(f"  {'Bracket':<25} {'YES ask':>8} {'Model%':>8} {'Edge':>7}")
+        else:
+            if nowcast_covers_event is not None and event_ticker != nowcast_covers_event:
+                print(f"  INFO: Nowcast does not cover this month — showing market prices only")
+            print(f"  {'Bracket':<25} {'YES ask':>8} {'Vol':>10}")
+        print(f"  {'-'*55}")
 
         for m in event_markets:
             title = m.get("yes_sub_title") or m.get("ticker")
+            st = m.get("strike_type", "")
+            floor = m.get("floor_strike")
+            cap = m.get("cap_strike")
+
+            if st == "less" and cap is not None:
+                label = f"Below {cap}%"
+            elif st == "greater" and floor is not None:
+                label = f"Above {floor}%"
+            elif st == "between" and floor is not None and cap is not None:
+                label = f"{floor}% to {cap}%"
+            else:
+                label = (title or "")[:25]
+
             yes_ask = m.get("yes_ask_dollars", "?")
             vol = int(float(m.get("volume_fp") or 0))
-            print(f"  {title:<25} {yes_ask:>8} {vol:>10,}")
 
-    return []
+            model_pct = ""
+            edge = ""
+            if use_nowcast and yes_ask != "?":
+                spread = 0.06  # Core PCE is less volatile than headline
+                floor_val = float(floor) if floor is not None else -999
+                cap_val = float(cap) if cap is not None else 999
+
+                def ncdf(x, mu, s):
+                    return 0.5 * (1.0 + erf((x - mu) / (s * sqrt(2.0))))
+
+                p_below_cap = ncdf(cap_val, core_pce_nowcast, spread) if cap_val < 900 else 1.0
+                p_below_floor = ncdf(floor_val, core_pce_nowcast, spread) if floor_val > -900 else 0.0
+                prob = p_below_cap - p_below_floor
+                model_pct = f"{prob:.0%}"
+
+                mkt_prob = float(yes_ask)
+                e = (prob - mkt_prob) * 100
+                edge = f"{e:+.1f}%"
+
+                if abs(e) > MIN_EDGE_PCT:
+                    signal = "BUY YES" if e > 0 else "BUY NO"
+                    edges.append({
+                        "ticker": m["ticker"],
+                        "label": label,
+                        "signal": signal,
+                        "model_prob": prob,
+                        "market_prob": mkt_prob,
+                        "edge": e,
+                    })
+
+            if use_nowcast:
+                print(f"  {label:<25} {yes_ask:>8} {model_pct:>8} {edge:>7}")
+            else:
+                print(f"  {label:<25} {yes_ask:>8} {vol:>10,}")
+
+    return edges
 
 
 # ── Main ────────────────────────────────────────────────────────────────────

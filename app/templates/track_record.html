@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdgeSignals — Track Record</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: 1px solid #2a2a4a;
+            padding: 20px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 { font-size: 24px; color: #fff; }
+        .header h1 span { color: #00d4aa; }
+        .header a { color: #00d4aa; text-decoration: none; margin-left: 20px; }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+
+        .page-title { font-size: 28px; margin-bottom: 8px; }
+        .page-subtitle { color: #888; font-size: 15px; margin-bottom: 30px; }
+
+        .empty-state {
+            background: #12121a; border: 1px solid #2a2a3a; border-radius: 12px;
+            padding: 60px 24px; text-align: center;
+        }
+        .empty-state h3 { font-size: 20px; margin-bottom: 12px; color: #fff; }
+        .empty-state p { color: #888; font-size: 15px; line-height: 1.6; }
+
+        .stats-bar {
+            display: flex; gap: 16px; margin-bottom: 30px; flex-wrap: wrap;
+        }
+        .stat {
+            background: #12121a; border: 1px solid #2a2a3a;
+            border-radius: 8px; padding: 16px 24px; flex: 1; text-align: center;
+            min-width: 140px;
+        }
+        .stat .number { font-size: 28px; font-weight: 700; color: #00d4aa; }
+        .stat .number.neutral { color: #888; }
+        .stat .label { font-size: 13px; color: #888; margin-top: 4px; }
+
+        .section {
+            background: #12121a; border: 1px solid #2a2a3a;
+            border-radius: 12px; padding: 24px; margin-bottom: 24px;
+        }
+        .section h3 { color: #fff; font-size: 18px; margin-bottom: 16px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 10px; color: #888; font-size: 13px; border-bottom: 1px solid #2a2a3a; }
+        td { padding: 10px; font-size: 14px; border-bottom: 1px solid #1a1a2a; }
+        tr:hover { background: #1a1a2a; }
+
+        .accuracy-good { color: #00d4aa; }
+        .accuracy-ok { color: #ff9f43; }
+        .accuracy-bad { color: #ff6b6b; }
+        .accuracy-na { color: #666; }
+
+        .edge-positive { color: #00d4aa; }
+        .edge-negative { color: #ff6b6b; }
+
+        .category-label { text-transform: capitalize; font-weight: 600; }
+
+        .note-box {
+            background: #0a1a2a; border: 1px solid #1a3a5a; border-radius: 8px;
+            padding: 16px 20px; margin-top: 24px; font-size: 14px; color: #8ab4f8;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/" style="text-decoration: none;"><h1><span>Edge</span>Signals</h1></a>
+        <div>
+            <a href="/">Dashboard</a>
+            <a href="/track-record">Track Record</a>
+            <a href="/pricing">Pricing</a>
+            <a href="/api/signals">API</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="page-title">Track Record</h2>
+        <p class="page-subtitle">Verified signal accuracy across all prediction market categories.</p>
+
+        {% if report.overall.total == 0 %}
+        <div class="empty-state">
+            <h3>Tracking Started</h3>
+            <p>We recently began logging and verifying every signal EdgeSignals generates.<br>
+            Check back in a few days once settlements come in and we have data to show.</p>
+        </div>
+
+        {% else %}
+
+        <!-- Overall Stats -->
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="number">{{ report.overall.total }}</div>
+                <div class="label">Total Signals</div>
+            </div>
+            <div class="stat">
+                <div class="number">{{ report.overall.correct }}</div>
+                <div class="label">Correct</div>
+            </div>
+            <div class="stat">
+                <div class="number">{{ report.overall.incorrect }}</div>
+                <div class="label">Incorrect</div>
+            </div>
+            <div class="stat">
+                {% if report.overall.accuracy_pct is not none %}
+                <div class="number {% if report.overall.accuracy_pct >= 60 %}accuracy-good{% elif report.overall.accuracy_pct >= 50 %}accuracy-ok{% else %}accuracy-bad{% endif %}">
+                    {{ report.overall.accuracy_pct }}%
+                </div>
+                {% else %}
+                <div class="number neutral">--</div>
+                {% endif %}
+                <div class="label">Accuracy</div>
+            </div>
+            <div class="stat">
+                <div class="number neutral">{{ report.overall.pending }}</div>
+                <div class="label">Pending</div>
+            </div>
+        </div>
+
+        <!-- Category Breakdown -->
+        {% if report.by_category %}
+        <div class="section">
+            <h3>Accuracy by Category</h3>
+            <table>
+                <tr>
+                    <th>Category</th>
+                    <th>Correct</th>
+                    <th>Incorrect</th>
+                    <th>Pending</th>
+                    <th>Total</th>
+                    <th>Accuracy</th>
+                </tr>
+                {% for cat, stats in report.by_category.items() %}
+                <tr>
+                    <td class="category-label">{{ cat }}</td>
+                    <td>{{ stats.correct }}</td>
+                    <td>{{ stats.incorrect }}</td>
+                    <td>{{ stats.pending }}</td>
+                    <td>{{ stats.total }}</td>
+                    <td>
+                        {% if stats.accuracy_pct is not none %}
+                        <span class="{% if stats.accuracy_pct >= 60 %}accuracy-good{% elif stats.accuracy_pct >= 50 %}accuracy-ok{% else %}accuracy-bad{% endif %}">
+                            {{ stats.accuracy_pct }}%
+                        </span>
+                        {% else %}
+                        <span class="accuracy-na">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Edge Analysis -->
+        {% if report.edge_analysis %}
+        <div class="section">
+            <h3>Edge Analysis</h3>
+            <p style="color: #888; font-size: 14px; margin-bottom: 16px;">
+                Do higher-edge signals perform better? This compares the average edge on signals that turned out correct vs incorrect.
+            </p>
+            <table>
+                <tr>
+                    <th>Outcome</th>
+                    <th>Avg Edge</th>
+                    <th>Avg |Edge|</th>
+                    <th>Signals</th>
+                </tr>
+                <tr>
+                    <td class="accuracy-good">Correct</td>
+                    <td>
+                        {% if report.edge_analysis.avg_edge_correct is not none %}
+                        <span class="edge-positive">{{ '%+.1f' | format(report.edge_analysis.avg_edge_correct) }}%</span>
+                        {% else %}
+                        <span class="accuracy-na">--</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if report.edge_analysis.avg_abs_edge_correct is not none %}
+                        {{ report.edge_analysis.avg_abs_edge_correct }}%
+                        {% else %}
+                        --
+                        {% endif %}
+                    </td>
+                    <td>{{ report.edge_analysis.correct_signal_count }}</td>
+                </tr>
+                <tr>
+                    <td class="accuracy-bad">Incorrect</td>
+                    <td>
+                        {% if report.edge_analysis.avg_edge_incorrect is not none %}
+                        <span class="edge-negative">{{ '%+.1f' | format(report.edge_analysis.avg_edge_incorrect) }}%</span>
+                        {% else %}
+                        <span class="accuracy-na">--</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if report.edge_analysis.avg_abs_edge_incorrect is not none %}
+                        {{ report.edge_analysis.avg_abs_edge_incorrect }}%
+                        {% else %}
+                        --
+                        {% endif %}
+                    </td>
+                    <td>{{ report.edge_analysis.incorrect_signal_count }}</td>
+                </tr>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Recent Days -->
+        {% if report.recent_days %}
+        <div class="section">
+            <h3>Recent Days</h3>
+            <table>
+                <tr>
+                    <th>Date</th>
+                    <th>Correct</th>
+                    <th>Incorrect</th>
+                    <th>Pending</th>
+                    <th>Total</th>
+                    <th>Accuracy</th>
+                </tr>
+                {% for day in report.recent_days %}
+                <tr>
+                    <td>{{ day.date }}</td>
+                    <td>{{ day.correct }}</td>
+                    <td>{{ day.incorrect }}</td>
+                    <td>{{ day.pending }}</td>
+                    <td>{{ day.total }}</td>
+                    <td>
+                        {% if day.accuracy_pct is not none %}
+                        <span class="{% if day.accuracy_pct >= 60 %}accuracy-good{% elif day.accuracy_pct >= 50 %}accuracy-ok{% else %}accuracy-bad{% endif %}">
+                            {{ day.accuracy_pct }}%
+                        </span>
+                        {% else %}
+                        <span class="accuracy-na">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="note-box">
+            Signals are logged automatically and checked against settlement outcomes from official sources
+            (NWS climatological reports for weather, Kalshi settlement for crypto and economics).
+            Only directional signals (BUY YES / BUY NO) are tracked -- informational signals are excluded.
+            Report generated {{ report.generated_at[:19] }} UTC.
+            {% if report.recent_days %}
+            Data covers {{ report.recent_days | length }} day{{ 's' if report.recent_days | length != 1 else '' }},
+            from {{ report.recent_days[-1].date }} to {{ report.recent_days[0].date }}.
+            {% endif %}
+        </div>
+
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -196,19 +196,20 @@ def build_deribit_probability_curve(options_data, spot, currency="BTC"):
     return curve
 
 
-def find_closest_deribit_prob(curve, target_strike, target_expiry=None,
-                              max_expiry_gap_days=3):
-    """Find the closest Deribit probability for a given strike price.
+def find_closest_deribit_iv(curve, target_strike, target_expiry=None,
+                            max_expiry_gap_days=30):
+    """Find the closest Deribit IV for a given strike price.
 
-    Only matches Deribit options whose expiry is within max_expiry_gap_days
-    of the target_expiry. This prevents comparing daily Kalshi markets to
-    monthly Deribit options (which have different volatility windows).
+    Returns the raw IV and metadata (NOT a pre-computed probability) so the
+    caller can recompute the probability using Kalshi's actual time-to-expiry.
+
+    Prefers the nearest expiry first, then the nearest strike within that expiry.
+    Falls back to interpolating IV between the two nearest strikes if the exact
+    strike isn't available.
     """
-    best = None
-    best_dist = float("inf")
-
+    # Group options by expiry, filter by date proximity
+    by_expiry = {}  # expiry_str -> [(strike, data), ...]
     for (expiry, strike), data in curve.items():
-        # If target expiry given, only match close expirations
         if target_expiry:
             try:
                 exp_date = datetime.strptime(expiry, "%Y-%m-%d")
@@ -218,13 +219,49 @@ def find_closest_deribit_prob(curve, target_strike, target_expiry=None,
                     continue
             except ValueError:
                 continue
+        by_expiry.setdefault(expiry, []).append((strike, data))
 
-        dist = abs(strike - target_strike)
-        if dist < best_dist:
-            best_dist = dist
-            best = {**data, "strike": strike, "expiry": expiry}
+    if not by_expiry:
+        return None
 
-    return best
+    # Pick the nearest expiry to the target
+    if target_expiry:
+        tgt_date = datetime.strptime(target_expiry, "%Y-%m-%d")
+        best_expiry = min(by_expiry.keys(),
+                          key=lambda e: abs((datetime.strptime(e, "%Y-%m-%d") - tgt_date).days))
+    else:
+        best_expiry = min(by_expiry.keys())
+
+    strikes_data = sorted(by_expiry[best_expiry], key=lambda x: x[0])
+    strikes = [s for s, _ in strikes_data]
+    ivs = [d["iv"] for _, d in strikes_data]
+
+    # Exact match
+    for strike, data in strikes_data:
+        if abs(strike - target_strike) < target_strike * 0.001:
+            return {**data, "strike": strike, "expiry": best_expiry,
+                    "iv_source": "exact_strike"}
+
+    # Interpolate between the two nearest bracketing strikes
+    below = [(s, d) for s, d in strikes_data if s < target_strike]
+    above = [(s, d) for s, d in strikes_data if s > target_strike]
+
+    if below and above:
+        s_lo, d_lo = below[-1]
+        s_hi, d_hi = above[0]
+        # Linear interpolation in strike space
+        w = (target_strike - s_lo) / (s_hi - s_lo)
+        interp_iv = d_lo["iv"] * (1 - w) + d_hi["iv"] * w
+        ref_data = d_lo if w < 0.5 else d_hi
+        return {**ref_data, "iv": interp_iv,
+                "strike": target_strike, "expiry": best_expiry,
+                "iv_source": f"interp_{s_lo:.0f}_{s_hi:.0f}"}
+
+    # Fallback: nearest strike (extrapolation — less reliable)
+    nearest_strike, nearest_data = min(strikes_data,
+                                       key=lambda x: abs(x[0] - target_strike))
+    return {**nearest_data, "strike": nearest_strike, "expiry": best_expiry,
+            "iv_source": "nearest_strike"}
 
 
 def scan_crypto(currency="BTC", series_prefix="KXBTC"):
@@ -272,21 +309,41 @@ def scan_crypto(currency="BTC", series_prefix="KXBTC"):
         vol = float(m.get("volume_fp") or 0)
         ticker = m.get("ticker", "")
 
-        # Parse Kalshi close time to match Deribit expiry
+        # Parse Kalshi close time and compute Kalshi-specific time-to-expiry
         close_time = m.get("close_time", "")
         kalshi_expiry = close_time[:10] if close_time else None
 
-        # Find matching Deribit probability (must be close expiry)
-        deribit = find_closest_deribit_prob(curve, threshold, target_expiry=kalshi_expiry)
+        # Calculate Kalshi TTE in years from now until close_time
+        now = datetime.now(timezone.utc)
+        if close_time:
+            try:
+                kalshi_close_dt = datetime.fromisoformat(close_time.replace("Z", "+00:00"))
+            except ValueError:
+                kalshi_close_dt = now + timedelta(hours=24)  # fallback
+        else:
+            kalshi_close_dt = now + timedelta(hours=24)
 
-        if not deribit or abs(deribit["strike"] - threshold) > threshold * 0.03:
-            continue  # no close match
+        kalshi_tte = max((kalshi_close_dt - now).total_seconds() / (365.25 * 24 * 3600), 0.0001)
 
-        deribit_prob = deribit["prob"]
+        # Find nearest Deribit IV (NOT pre-computed prob)
+        deribit = find_closest_deribit_iv(curve, threshold, target_expiry=kalshi_expiry)
+
+        if not deribit:
+            continue
+
+        # Skip if strike mismatch > 3% (no close option available)
+        if abs(deribit["strike"] - threshold) > threshold * 0.03:
+            continue
+
+        # Recompute probability using Deribit's IV but KALSHI's time-to-expiry
+        deribit_iv = deribit["iv"]
+        deribit_prob = implied_prob_above(spot, threshold, kalshi_tte, deribit_iv)
         if direction == "below":
             deribit_prob = 1 - deribit_prob
 
         kalshi_prob = yes_ask
+        kalshi_tte_hours = kalshi_tte * 365.25 * 24
+        deribit_tte_days = deribit.get("tte_days", 0)
 
         edge = (deribit_prob - kalshi_prob) * 100
 
@@ -298,7 +355,8 @@ def scan_crypto(currency="BTC", series_prefix="KXBTC"):
 
         if signal or abs(edge) > 5:
             print(f"  ${threshold:>9,.0f} {kalshi_prob:>7.0%} {deribit_prob:>8.0%} "
-                  f"{edge:>+6.1f}% {direction:>6} {signal:>10} {ticker}")
+                  f"{edge:>+6.1f}% {direction:>6} {signal:>10} {ticker}"
+                  f"  [Kalshi {kalshi_tte_hours:.1f}h | Deribit {deribit_tte_days:.1f}d | IV src: {deribit.get('iv_source','')}]")
 
             if signal:
                 edges.append({
@@ -310,8 +368,11 @@ def scan_crypto(currency="BTC", series_prefix="KXBTC"):
                     "edge": edge,
                     "signal": signal,
                     "price": yes_ask if "YES" in signal else no_ask,
-                    "deribit_iv": deribit["iv"],
+                    "deribit_iv": deribit_iv,
                     "deribit_instrument": deribit["instrument"],
+                    "iv_source": deribit.get("iv_source", ""),
+                    "kalshi_tte_hours": kalshi_tte_hours,
+                    "deribit_tte_days": deribit_tte_days,
                     "volume": vol,
                 })
 
@@ -359,8 +420,8 @@ def main():
             print(f"\n  {e['signal']} @ {price_cents}¢ — {e['direction']} ${e['threshold']:,.0f}")
             print(f"    Ticker: {e['ticker']}")
             print(f"    Kalshi: {e['kalshi_prob']:.0%} | Deribit: {e['deribit_prob']:.0%} | Edge: {e['edge']:+.1f}%")
-            print(f"    Deribit IV: {e['deribit_iv']:.0%} | Ref: {e['deribit_instrument']}")
-            print(f"    Kalshi vol: {int(e['volume']):,}")
+            print(f"    Deribit IV: {e['deribit_iv']:.0%} | Ref: {e['deribit_instrument']} | IV src: {e.get('iv_source','')}")
+            print(f"    Kalshi TTE: {e.get('kalshi_tte_hours',0):.1f}h | Deribit TTE: {e.get('deribit_tte_days',0):.1f}d | Vol: {int(e['volume']):,}")
     else:
         print("\n  No significant arb opportunities found.")
         print("  Markets appear efficiently priced relative to options.")

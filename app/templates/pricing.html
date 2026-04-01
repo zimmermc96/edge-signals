@@ -80,7 +80,7 @@
                     <li>Daily email digest</li>
                     <li>Community Discord access</li>
                 </ul>
-                <a href="#" class="plan-btn secondary">Get Started</a>
+                <a href="/" class="plan-btn secondary">Get Started</a>
             </div>
 
             <div class="plan featured">
@@ -96,7 +96,10 @@
                     <li>Economic nowcast comparisons</li>
                     <li>Historical edge tracking</li>
                 </ul>
-                <a href="#" class="plan-btn primary">Start Free Trial</a>
+                <form method="POST" action="/api/create-checkout">
+                    <input type="hidden" name="plan" value="pro">
+                    <button type="submit" class="plan-btn primary">Start Free Trial</button>
+                </form>
             </div>
 
             <div class="plan">
@@ -112,7 +115,10 @@
                     <li>Backtesting data export</li>
                     <li>Priority support</li>
                 </ul>
-                <a href="#" class="plan-btn secondary">Contact Us</a>
+                <form method="POST" action="/api/create-checkout">
+                    <input type="hidden" name="plan" value="algo">
+                    <button type="submit" class="plan-btn secondary">Get Started</button>
+                </form>
             </div>
         </div>
 

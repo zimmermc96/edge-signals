@@ -127,6 +127,7 @@
         <h1><span>Edge</span>Signals</h1>
         <div>
             <span class="meta">{{ now }}</span>
+            <a href="/track-record">Track Record</a>
             <a href="/pricing">Pricing</a>
             <a href="/api/signals">API</a>
         </div>
@@ -209,10 +210,10 @@
         </div>
 
         <!-- Crypto Section -->
-        <div class="category-section">
+        <div class="category-section" id="crypto-section">
             <h2>Crypto Arbitrage (Kalshi vs Deribit)</h2>
-            {% if data.crypto %}
-            <table>
+            {% if crypto_available and data.crypto %}
+            <table id="crypto-table">
                 <tr><th>Asset</th><th>Threshold</th><th>Signal</th><th>Deribit</th><th>Kalshi</th><th>Edge</th><th>Confidence</th></tr>
                 {% for s in data.crypto[:10] %}
                 <tr>
@@ -226,8 +227,18 @@
                 </tr>
                 {% endfor %}
             </table>
-            {% else %}
+            {% elif crypto_available %}
             <p style="color: #666;">No crypto arb signals found.</p>
+            {% else %}
+            <div id="crypto-placeholder">
+                <p style="color: #888; margin-bottom: 12px;">Crypto scanner is slow (~15s). Click to load on demand.</p>
+                <button id="load-crypto-btn" onclick="loadCrypto()" style="
+                    padding: 10px 24px; background: #1a1a2e; color: #00d4aa;
+                    border: 1px solid #00d4aa; border-radius: 8px; cursor: pointer;
+                    font-size: 14px; font-weight: 600;
+                ">Load Crypto Signals</button>
+                <span id="crypto-status" style="color: #666; margin-left: 12px; font-size: 13px;"></span>
+            </div>
             {% endif %}
         </div>
 
@@ -269,5 +280,48 @@
             <a href="/pricing" class="cta-btn">View Plans</a>
         </div>
     </div>
+    <script>
+    async function loadCrypto() {
+        const btn = document.getElementById('load-crypto-btn');
+        const status = document.getElementById('crypto-status');
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        status.textContent = 'Scanning Deribit + Kalshi...';
+
+        try {
+            const resp = await fetch('/api/signals/crypto');
+            const data = await resp.json();
+            const signals = data.signals || [];
+
+            if (signals.length === 0) {
+                document.getElementById('crypto-placeholder').innerHTML =
+                    '<p style="color: #666;">No crypto arb signals found.</p>';
+                return;
+            }
+
+            let html = '<table><tr><th>Asset</th><th>Threshold</th><th>Signal</th><th>Deribit</th><th>Kalshi</th><th>Edge</th><th>Confidence</th></tr>';
+            signals.slice(0, 10).forEach(function(s) {
+                const badgeClass = s.signal.includes('YES') ? 'badge-yes' : 'badge-no';
+                const edgeClass = s.edge > 0 ? 'edge-positive' : 'edge-negative';
+                html += '<tr>'
+                    + '<td>' + s.asset + '</td>'
+                    + '<td>' + s.label + '</td>'
+                    + '<td><span class="signal-badge ' + badgeClass + '">' + s.signal + '</span></td>'
+                    + '<td>' + Math.round(s.model_prob * 100) + '%</td>'
+                    + '<td>' + Math.round(s.market_prob * 100) + '%</td>'
+                    + '<td class="' + edgeClass + '">' + (s.edge > 0 ? '+' : '') + s.edge.toFixed(1) + '%</td>'
+                    + '<td class="confidence-' + s.confidence + '">' + s.confidence + '</td>'
+                    + '</tr>';
+            });
+            html += '</table>';
+
+            document.getElementById('crypto-placeholder').innerHTML = html;
+        } catch (e) {
+            status.textContent = 'Error loading crypto signals. Try again.';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+    </script>
 </body>
 </html>

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+*.key
+*.pem
+practice_data/
+*.log
+trade_log.csv
+run_*.sh
+tatelovesfeesh.txt

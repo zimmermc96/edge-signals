@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdgeSignals — Pricing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: 1px solid #2a2a4a;
+            padding: 20px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 { font-size: 24px; color: #fff; }
+        .header h1 span { color: #00d4aa; }
+        .header a { color: #00d4aa; text-decoration: none; margin-left: 20px; }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 60px 20px; text-align: center; }
+        .container h2 { font-size: 36px; margin-bottom: 12px; }
+        .container .subtitle { color: #888; font-size: 18px; margin-bottom: 50px; }
+
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+        .plan {
+            background: #12121a; border: 1px solid #2a2a3a; border-radius: 12px;
+            padding: 32px 24px; text-align: left;
+        }
+        .plan.featured { border-color: #00d4aa; background: linear-gradient(180deg, #0a1a15 0%, #12121a 100%); }
+
+        .plan-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .plan-price { font-size: 42px; font-weight: 700; color: #00d4aa; margin: 16px 0; }
+        .plan-price span { font-size: 16px; color: #888; font-weight: 400; }
+        .plan-desc { color: #888; font-size: 14px; margin-bottom: 24px; }
+
+        .plan ul { list-style: none; margin-bottom: 24px; }
+        .plan li { padding: 8px 0; font-size: 14px; color: #ccc; }
+        .plan li::before { content: "->"; color: #00d4aa; margin-right: 8px; }
+
+        .plan-btn {
+            display: block; width: 100%; padding: 14px; border: none; border-radius: 8px;
+            font-size: 16px; font-weight: 600; cursor: pointer; text-align: center;
+            text-decoration: none;
+        }
+        .plan-btn.primary { background: #00d4aa; color: #000; }
+        .plan-btn.primary:hover { background: #00b894; }
+        .plan-btn.secondary { background: #2a2a3a; color: #fff; }
+        .plan-btn.secondary:hover { background: #3a3a4a; }
+
+        .faq { max-width: 700px; margin: 60px auto 0; text-align: left; }
+        .faq h3 { font-size: 24px; margin-bottom: 24px; text-align: center; }
+        .faq-item { margin-bottom: 20px; }
+        .faq-item h4 { font-size: 16px; margin-bottom: 6px; }
+        .faq-item p { color: #888; font-size: 14px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/" style="text-decoration: none;"><h1><span>Edge</span>Signals</h1></a>
+        <div>
+            <a href="/">Dashboard</a>
+            <a href="/api/signals">API</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Find Your Edge</h2>
+        <p class="subtitle">Proprietary signals across weather, crypto, and economic prediction markets.</p>
+
+        <div class="pricing-grid">
+            <div class="plan">
+                <div class="plan-name">Free</div>
+                <div class="plan-price">$0<span>/mo</span></div>
+                <div class="plan-desc">See what we offer</div>
+                <ul>
+                    <li>Dashboard access (15-min delay)</li>
+                    <li>3 categories: weather, crypto, economics</li>
+                    <li>Daily email digest</li>
+                    <li>Community Discord access</li>
+                </ul>
+                <a href="#" class="plan-btn secondary">Get Started</a>
+            </div>
+
+            <div class="plan featured">
+                <div class="plan-name">Pro</div>
+                <div class="plan-price">$29<span>/mo</span></div>
+                <div class="plan-desc">For active traders</div>
+                <ul>
+                    <li>Real-time signals (no delay)</li>
+                    <li>All categories + upcoming releases</li>
+                    <li>Instant alerts (email + Discord)</li>
+                    <li>Bias-corrected weather models</li>
+                    <li>Deribit options arb scanner</li>
+                    <li>Economic nowcast comparisons</li>
+                    <li>Historical edge tracking</li>
+                </ul>
+                <a href="#" class="plan-btn primary">Start Free Trial</a>
+            </div>
+
+            <div class="plan">
+                <div class="plan-name">Algo</div>
+                <div class="plan-price">$99<span>/mo</span></div>
+                <div class="plan-desc">For automated trading</div>
+                <ul>
+                    <li>Everything in Pro</li>
+                    <li>Full REST API access</li>
+                    <li>Webhook alerts for your bot</li>
+                    <li>Custom edge thresholds</li>
+                    <li>Raw model data (GFS ensemble, HRRR)</li>
+                    <li>Backtesting data export</li>
+                    <li>Priority support</li>
+                </ul>
+                <a href="#" class="plan-btn secondary">Contact Us</a>
+            </div>
+        </div>
+
+        <div class="faq">
+            <h3>FAQ</h3>
+            <div class="faq-item">
+                <h4>What data sources power the signals?</h4>
+                <p>Weather signals use a bias-corrected multi-model ensemble (GFS 31-member, HRRR, NBM) calibrated against NWS CLI settlement data. Crypto signals compare Kalshi market prices to Deribit options-implied probabilities. Economic signals compare market prices to Fed nowcasts (Cleveland Fed, Atlanta Fed GDPNow, CME FedWatch).</p>
+            </div>
+            <div class="faq-item">
+                <h4>How is this different from Wethr.net or minuteTemp?</h4>
+                <p>Those tools only cover weather. EdgeSignals is the first platform to provide proprietary signals across weather, crypto arbitrage, AND economic data markets — all in one dashboard with a unified API.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Do you place trades for me?</h4>
+                <p>No. We provide signals and edge analysis. You make the trading decisions and execute on Kalshi or Polymarket yourself.</p>
+            </div>
+            <div class="faq-item">
+                <h4>What's your track record?</h4>
+                <p>We publish our signal accuracy transparently. Weather model bracket accuracy, crypto arb hit rate, and economic nowcast scores are updated daily on the dashboard.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

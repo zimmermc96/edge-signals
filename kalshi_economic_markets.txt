@@ -1,0 +1,456 @@
+KALSHI ECONOMIC & FINANCIAL PREDICTION MARKETS - EXHAUSTIVE INVENTORY
+Generated: 2026-03-31
+======================================================================
+
+================================================================================
+TIER 1: HIGH-FREQUENCY MACRO DATA RELEASES (Monthly/Quarterly)
+================================================================================
+
+1. KXCPI - Consumer Price Index (CPI)
+   Category: Economics | Frequency: Monthly
+   Settlement Source: Bureau of Labor Statistics (BLS)
+   Measures: Month-over-month CPI change (single-decimal)
+   Resolution: BLS CPI release, closes 8:25 AM ET on release day
+   Active Events: 9 months (Mar-Nov 2026), ~81 open markets total
+   Brackets: Typically -0.1% to +1.3% in 0.1% increments
+   Highest Volume: KXCPI-26MAR (next release Apr 10) - 144k+ vol on some strikes
+   Key Strikes (Mar 2026): T0.8 at $0.64, T0.9 at $0.33 (market implies ~0.8% MoM)
+   Notable: VERY liquid near-term, thinner further out
+
+2. KXPCECORE - Core PCE Inflation
+   Category: Economics | Frequency: Monthly
+   Settlement Source: Bureau of Economic Analysis (BEA)
+   Measures: MoM % change in PCE Price Index ex food & energy (single-decimal)
+   Active Events: 9 months (Mar-Nov 2026), ~45 open markets
+   Brackets: 0.0% to 0.4% in 0.1% increments
+   Key Strikes (Mar 2026): T0.2 at $0.59, T0.3 at $0.30
+   Notable: Fed's preferred inflation gauge
+
+3. KXPAYROLLS - Nonfarm Payrolls / Jobs Report
+   Category: Economics | Frequency: Monthly
+   Settlement Source: BLS Monthly Employment Situation Report
+   Measures: Change in total nonfarm payroll employment
+   Active Events: 6 months, ~50 open markets
+   Brackets: -100K to +125K jobs
+   Key Strikes (Mar 2026, Apr 3 release): T-50000 at $0.88, T-75000 at $0.90
+   Resolution: Closes 8:29 AM ET on BLS release day
+   Notable: Markets currently pricing significant job loss risk
+
+4. KXGDP - US GDP Growth (Quarterly)
+   Category: Economics | Frequency: Custom (quarterly)
+   Settlement Source: Bureau of Economic Analysis (BEA) Advance Estimate
+   Measures: Real GDP seasonally adjusted annualized rate (1-decimal)
+   Active Events: Q1 2026 (Apr 30), Q2 2026 (Jul 30) - 12 open markets
+   Brackets: +1.0% to +4.5%
+   Key Strikes (Q1, Apr 30): T2.0 at $0.68, T2.5 at $0.47, T3.0 at $0.31
+   Volume: 75K+ on popular strikes (T2.0, T1.0)
+   Notable: Very liquid near GDP release
+
+5. KXHOUSINGSTART - Housing Starts
+   Category: Economics | Frequency: Custom
+   Settlement Source: Census Bureau (listed as BLS in API)
+   Measures: Monthly housing starts (seasonally adjusted annual rate, millions)
+   Active Events: Mar 2026 data (Apr 17 release) - 8 markets
+   Brackets: 1.300M to 1.500M
+   Volume: Moderate (~500-600 on key strikes)
+
+================================================================================
+TIER 2: FED POLICY & INTEREST RATES
+================================================================================
+
+6. KXFED - Federal Funds Rate (by FOMC Meeting)
+   Category: Economics | Frequency: Custom (per FOMC meeting)
+   Settlement Source: Federal Reserve Board of Governors
+   Measures: Upper bound of target federal funds rate after each meeting
+   Active Events: 8 meetings (Apr 2026 through Apr 2027) - 120 open markets!
+   Brackets: 0.00% to 5.25% in 0.25% increments
+   Key Data Points:
+     Apr 2026: T3.75 at $0.03, T3.50 at $0.98 (market expects rate at 3.50-3.75%)
+     Jun 2026: T3.75 at $0.11, T3.50 at $0.84 (expects cut to ~3.50%)
+     Dec 2026: T3.50 at $0.55, T3.25 at $0.64 (expects ~3.25%)
+     Apr 2027: T3.50 at $0.52, T3.25 at $0.56 (range of outcomes)
+   Volume: Massive - 78K+ on Apr T3.75, 65K+ on Apr T3.25
+   Notable: HIGHEST LIQUIDITY of all economic markets
+
+7. KXFEDDECISION - Fed Meeting Decision Type
+   Category: Economics | Frequency: Custom
+   Settlement Source: Federal Reserve
+   Measures: Whether Fed hikes >25bps at specific meetings
+   Active Events: 5 markets (future meetings through Jan 2028)
+   Volume: ~1,500 contracts
+
+8. KXRATECUT - Will the Fed Cut Rates?
+   Category: Economics | Frequency: Annual
+   Settlement Source: Federal Reserve
+   Measures: Whether any rate cut occurs before year-end
+   Active Markets: 1 (before 2027)
+   Current Price: $0.66 (66% probability of cut before 2027)
+   Volume: 65,922 | OI: 41,210
+   Notable: Very high liquidity binary
+
+9. KXFEDCHGCOUNT - Number of Fed Rate Changes
+   Category: Economics | Frequency: Annual
+   Settlement Source: Federal Reserve
+   Active Markets: 5 brackets
+   Volume: Low (~51)
+
+10. KXZERORATE - Will Rates Hit Zero?
+    Category: Economics | Source: Federal Reserve
+    Measures: Whether rates return to zero
+    Currently: No open markets (all expired or not yet listed)
+
+11. KXFEDMEET - Fed Emergency Meeting
+    Category: Economics | Source: Federal Reserve
+    Measures: Whether Fed holds emergency meeting in 2026
+    Currently: No open markets
+
+================================================================================
+TIER 3: BROAD ECONOMIC OUTLOOK
+================================================================================
+
+12. KXRECSSNBER - Recession
+    Category: Economics | Frequency: Annual
+    Settlement Source: Bureau of Economic Analysis / NBER
+    Measures: Whether NBER declares recession in 2026
+    Current Price: $0.34 (34% probability)
+    Volume: 1,052,499 (!) | OI: 415,941
+    Notable: HIGHEST VOLUME of any economic market on Kalshi
+
+13. KXECONPATH - State of the Economy
+    Category: Economics | Frequency: Annual
+    Settlement Source: FRED (Federal Reserve Economic Data)
+    Measures: Economic conditions at end of 2026 (multiple scenarios)
+    Active Markets: 4 brackets
+    Volume: ~10,554 | OI: 8,209
+
+14. KXGDPYEAR - Annual GDP Growth
+    Category: Economics | Source: BEA
+    Measures: Full-year GDP growth for 2026
+    Active Markets: 5 brackets
+    Volume: ~1,583
+
+15. KXGDPUSMAX - Peak GDP Quarter
+    Category: Economics | Source: BEA
+    Measures: Whether any quarter hits >5% GDP growth (Q1 2025-Q4 2028)
+    Active Markets: When available
+
+16. KXNFPROD - Nonfarm Productivity
+    Category: Economics | Source: BLS
+    Measures: Whether US nonfarm productivity YoY exceeds 3% in any 2026 quarter
+    Current Price: $0.39
+    Volume: 48,901 | OI: 4,152
+
+17. KXNYSECIRCUIT - NYSE Circuit Breaker
+    Category: Economics | Source: NYSE
+    Measures: Whether a market-wide circuit breaker triggers before 2027
+    Current Price: $0.28
+    Volume: 99,976 | OI: 55,092
+    Notable: Very liquid crash-risk market
+
+================================================================================
+TIER 4: INFLATION-RELATED
+================================================================================
+
+18. KXLCPIMAXYOY - Peak YoY Inflation
+    Category: Economics | Frequency: One-off
+    Settlement Source: BLS
+    Measures: How high YoY CPI gets in 2026
+    Active Markets: 5 brackets
+    Volume: ~8,033 | OI: 4,318
+
+19. KXPPIVSCPI - PPI vs CPI
+    Category: Economics | Source: BLS
+    Measures: Whether PPI YoY exceeds CPI YoY for 3+ consecutive months in 2026
+    Current Price: $0.92 (92% probability)
+    Volume: 40,599 | OI: 12,055
+
+================================================================================
+TIER 5: FISCAL & TRADE
+================================================================================
+
+20. KXDEFGDP - Federal Deficit-to-GDP
+    Category: Economics | Source: BLS
+    Measures: Whether US deficit-to-GDP falls below 5% for FY2026
+    Current Price: $0.07 (7% probability - very unlikely)
+    Volume: 49,936 | OI: 13,703
+
+21. KXDEBTGROWTH - National Debt Growth
+    Category: Economics | Source: FRED
+    Measures: Whether national debt hits $50T during Trump admin
+    Active Markets: 3 brackets
+    Volume: ~15,163
+
+22. KXTARIFFREVENUE - Tariff Revenue
+    Category: Economics | Source: Federal data
+    Measures: US tariff revenue for 2026 (bracket levels)
+    Active Markets: 5 brackets
+    Volume: Low (~34)
+
+23. KXTRADEDEFICIT - US Trade Deficit
+    Category: Economics | Source: Federal data
+    Measures: US trade deficit for 2026 in specific ranges
+    Active Markets: 5 brackets
+    Volume: ~394
+
+24. KXIRSCOLLECT - IRS Tax Collection
+    Category: Economics | Source: IRS
+    Measures: Whether IRS collects more in taxes this year vs last
+    Current Price: $0.74
+    Volume: 7,354 | OI: 3,394
+
+25. KXIRANIMPORTS - US Imports from Iran
+    Category: Economics
+    Measures: Whether US imports from Iran exceed $5M in 2026
+    Active: When available
+
+================================================================================
+TIER 6: LABOR MARKET (Beyond Payrolls)
+================================================================================
+
+26. KXU3MAX - Unemployment Spike
+    Category: Economics | Source: BLS
+    Measures: How high unemployment gets before 2027
+    Active Markets: 5 brackets
+    Volume: ~9,947 | OI: 5,314
+
+27. KXFEDEMPLOYEES - Federal Employee Cuts
+    Category: Economics | Source: FRED
+    Measures: Whether >50,000 government employees cut before Jan 2027
+    Active: When available
+
+28. KXLAYOFFSYINFO - Tech Layoffs
+    Category: Economics | Source: FRED
+    Measures: Whether more tech layoffs in 2026 than 2025
+    Active: When available
+
+================================================================================
+TIER 7: ENERGY & COMMODITIES
+================================================================================
+
+29. KXWTI - WTI Oil Price (Daily)
+    Category: Financials | Frequency: Daily
+    Settlement Source: ICE (Intercontinental Exchange)
+    Measures: WTI front-month settle price on specific dates
+    Active: ~30 markets, daily expiry
+    Brackets: ~$94-$108 range (current prices)
+    Notable: Daily settlement, new markets created each trading day
+
+30. KXWTIW - WTI Oil Price (Weekly)
+    Category: Financials | Source: ICE
+    Measures: Weekly WTI oil price ranges
+    Active: When available
+
+31. KXWTIMAX - WTI Yearly High
+    Category: Financials | Source: ICE
+    Measures: Highest WTI price reached during 2026
+
+32. KXNGASMAX - Natural Gas Price Peak
+    Category: Economics | Source: Energy Information Administration (EIA)
+    Measures: Whether natural gas exceeds specific price levels in 2026
+    Active Markets: 5 brackets ($4-$7+/MMBTU)
+    Key Strike: T$7.00 at $0.55
+    Volume: ~8,062 | OI: 7,478
+
+33. KXNGASMIN - Natural Gas Price Floor
+    Category: Economics | Source: EIA
+    Measures: Whether natural gas drops below specific levels in 2026
+    Active Markets: 5 brackets
+    Volume: ~417
+
+34. KXOILRIGS - US Oil Rig Count
+    Category: Economics | Source: American Oil & Gas Reporter
+    Measures: Number of active US oil rigs at end of 2026
+    Active Markets: 5 brackets
+    Volume: ~2,173
+
+35-42. KXAAAGASMAX/MIN (CA, FL, NY, TX) - State Gas Prices
+    Category: Economics | Source: AAA
+    Measures: Highest/lowest gas prices by state in 2026
+    8 series total, 3 brackets each (24 markets)
+    Examples:
+      CA Max: T$7.60 at $0.44 | Vol: 2,405
+      TX Min: T$2.30 at $0.50 | Vol: 5,242
+      FL Min: T$2.60 at $0.22 | Vol: 5,234
+      CA Min: T$4.10 at $0.12 | Vol: 13,232
+
+43. KXSOLAR - Solar Capacity Installation
+    Category: Economics | Source: Solar Energy Industries Association
+    Measures: Whether 55+ GWdc of solar installed in 2026
+
+================================================================================
+TIER 8: EQUITY INDICES
+================================================================================
+
+44. KXINXY - S&P 500 Year-End
+    Category: Financials | Frequency: Annual
+    Settlement Source: Google Finance (and similar)
+    Measures: S&P 500 level on Dec 31, 2026 at 4pm EST
+    Active Markets: 27 (brackets from <4000 to >9000)
+    Key Strikes:
+      T4000 (below 4000): $0.05 | Vol: 336,244 | OI: 324,165
+      B5100 (5000-5199.99): $0.05 | Vol: 148,660
+      B5500 (5400-5599.99): $0.09 | Vol: 312,508
+      B7500 (7400-7599.99): $0.10 | Vol: 171,765
+    Notable: EXTREMELY high volume, hundreds of thousands of contracts
+
+================================================================================
+TIER 9: CRYPTOCURRENCY
+================================================================================
+
+45. KXBTCY - Bitcoin Year-End Price
+    Category: Crypto | Source: CF Benchmarks
+    Measures: BTC price on Jan 1, 2027
+    Volume: 944K+ on some strikes (massive)
+
+46. KXBTCD - Bitcoin Daily Price
+    Category: Crypto | Source: CF Benchmarks
+    Measures: Daily BTC price above/below thresholds
+
+47. KXETH - Ethereum Hourly Range
+    Category: Crypto | Frequency: Hourly
+    Settlement Source: CF Benchmarks (ERTI - Ethereum Real-Time Index)
+    Measures: ETH price at specific hours
+
+48. KXETHY - Ethereum Year-End Price
+    Category: Crypto | Source: CF Benchmarks
+
+49. KXETHD - Ethereum Daily Price
+    Category: Crypto | Source: CF Benchmarks
+
+50. KXSOLD - Solana Daily Price
+    Category: Crypto | Source: CF Benchmarks
+
+51. KXDOGED - Dogecoin Daily Price
+    Category: Crypto | Source: CF Benchmarks
+
+================================================================================
+TIER 10: OTHER ECONOMIC / STRUCTURAL
+================================================================================
+
+52. KXBANKRUPTCY - Corporate Bankruptcies
+    Category: Economics | Source: Standard & Poor's
+    Measures: Number of corporate bankruptcies in 2026
+
+53. KXCHINAUSGDP - China vs US GDP
+    Category: Economics | Source: IMF
+    Measures: Whether China overtakes US GDP by 2030
+    Current Price: $0.23
+    Volume: 80,509 | OI: 19,855
+
+54. KXGDPSHAREMANU - Manufacturing GDP Share
+    Category: Economics | Source: BEA
+    Measures: Whether manufacturing share of GDP increases under Trump
+    Current Price: $0.14
+    Volume: 18,841 | OI: 11,067
+
+55. KXINEQUALITY - US Inequality
+    Category: Economics | Source: World Bank
+    Measures: Whether Trump reduces inequality
+
+56. KXNYCRENTSY - NYC Rent Growth
+    Category: Economics | Source: StreetEasy
+    Measures: NYC rent growth rate in Dec 2026
+    Active Markets: 5 brackets
+
+57. KXUSDTTBILL - USDT Treasury Bill Reserves
+    Category: Economics
+    Measures: Share of USDT reserves in T-bills at end of 2026
+
+58. KXBRAZILGDP - Brazilian GDP Growth
+    Category: Economics
+    Measures: Brazilian GDP YoY growth
+
+59. KXGOVTSPEND - Government Spending
+    Category: Economics | Source: FRED
+    Measures: Government spending increases
+
+60. KXBALANCE - Balanced Budget
+    Category: Politics | Source: FRED
+    Measures: Whether Trump balances the budget
+
+61. KXTRILLIONAIRE / KXMUSKTRILLION - First Trillionaire
+    Category: Economics | Source: Forbes
+    Measures: Who/when first trillionaire emerges
+
+================================================================================
+TIER 11: IPO MARKETS (Companies/Economics category)
+================================================================================
+
+62. KXIPOOPENAI - OpenAI IPO timing
+63. KXIPOSPACEX - SpaceX IPO timing
+64. KXIPOSTARLINK - Starlink IPO timing
+65. KXIPOFANNIE - Fannie Mae IPO timing
+66. KXIPOANDURIL - Anduril IPO timing
+67. KXSTRIPEIPO - Stripe IPO timing
+68. KXFREDDIE - Freddie Mac IPO timing
+69. KXIPODISCORD - Discord IPO timing
+70. KXIPOGLEAN - Glean IPO timing
+71. KXIPODEEL - Deel IPO timing
+72. KXIPOBREX - Brex IPO timing
+73. KXIPORAMP - Ramp IPO timing
+74. KXIPORIPPLING - Rippling IPO timing
+75. KXIPOBEASTINDUSTRIES - Beast Industries IPO
+76. KXIPOOLIPOP - Olipop IPO timing
+77. KXIPOWHOOP - Whoop IPO timing
+78. KXIPOAPPSFLYER - AppsFlyer IPO timing
+79. KXIPOCLUELY - Cluely IPO timing
+80. KXIPOAIRTABLE - Airtable IPO timing
+
+================================================================================
+SUMMARY - MOST TRADEABLE ECONOMIC MARKETS (by Volume & Liquidity)
+================================================================================
+
+Rank | Ticker       | Description                    | Volume    | OI
+-----|--------------|--------------------------------|-----------|--------
+  1  | KXRECSSNBER  | Recession in 2026              | 1,052,499 | 415,941
+  2  | KXINXY       | S&P 500 year-end               | 336,244+  | 324,165
+  3  | KXCPI        | Monthly CPI (Mar 2026)         | 144,586   | 78,762
+  4  | KXFED        | Fed funds rate (per meeting)    | 78,283    | 70,079
+  5  | KXPCECORE    | Core PCE inflation             | 116,263   | 1,749
+  6  | KXNYSECIRCUIT| NYSE circuit breaker           | 99,976    | 55,092
+  7  | KXCHINAUSGDP | China overtakes US GDP         | 80,509    | 19,855
+  8  | KXGDP        | Quarterly GDP (Q1 2026)        | 75,456    | 44,408
+  9  | KXRATECUT    | Fed rate cut before 2027       | 65,922    | 41,210
+ 10  | KXDEFGDP     | Deficit-to-GDP below 5%        | 49,936    | 13,703
+ 11  | KXNFPROD     | Nonfarm productivity >3%       | 48,901    | 4,152
+ 12  | KXPPIVSCPI   | PPI YoY > CPI YoY             | 40,599    | 12,055
+ 13  | KXTARIFFREVENUE | US tariff revenue 2026      | 34 (low)  | 29
+ 14  | KXPAYROLLS   | Nonfarm payrolls (monthly)     | 9,989     | 6,406
+ 15  | KXDEBTGROWTH | National debt $50T             | 15,163    | 4,366
+
+================================================================================
+SETTLEMENT SOURCES SUMMARY
+================================================================================
+
+Source                              | Series Using It
+------------------------------------|------------------------------------------
+Bureau of Labor Statistics (BLS)    | KXCPI, KXPAYROLLS, KXU3MAX, KXLCPIMAXYOY
+Bureau of Economic Analysis (BEA)   | KXGDP, KXGDPYEAR, KXPCECORE, KXGDPSHAREMANU
+Federal Reserve                     | KXFED, KXFEDDECISION, KXRATECUT, KXFEDMEET
+FRED                                | KXECONPATH, KXDEBTGROWTH, KXGOVTSPEND, KXFEDEMPLOYEES
+ICE (Intercontinental Exchange)     | KXWTI, KXWTIW, KXWTIMAX
+CF Benchmarks                       | KXBTCY, KXBTCD, KXETH, KXETHY, KXETHD, KXSOLD, KXDOGED
+Energy Information Administration   | KXNGASMAX, KXNGASMIN
+AAA                                 | KXAAAGASMAX/MIN (CA, FL, NY, TX)
+Standard & Poor's                   | KXBANKRUPTCY
+IMF                                 | KXCHINAUSGDP
+Forbes                              | KXTRILLIONAIRE, KXMUSKTRILLION
+World Bank                          | KXINEQUALITY
+IRS                                 | KXIRSCOLLECT
+NYSE                                | KXNYSECIRCUIT
+StreetEasy                          | KXNYCRENTSY
+SEIA                                | KXSOLAR
+
+================================================================================
+API ACCESS
+================================================================================
+
+Base URL: https://api.elections.kalshi.com/trade-api/v2/
+
+Key endpoints:
+  Series info:  GET /series/{ticker}
+  Events:       GET /events?series_ticker={ticker}&status=open
+  Markets:      GET /markets?series_ticker={ticker}&status=open&limit=200
+  Single market: GET /markets/{ticker}
+
+All prices are in USD cents (0.01 = 1 cent = 1% probability)

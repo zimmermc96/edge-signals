@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdgeSignals — Prediction Market Signals</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: 1px solid #2a2a4a;
+            padding: 20px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 { font-size: 24px; color: #fff; }
+        .header h1 span { color: #00d4aa; }
+        .header .meta { color: #888; font-size: 14px; }
+        .header a { color: #00d4aa; text-decoration: none; margin-left: 20px; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+
+        .top-edges {
+            background: linear-gradient(135deg, #1a2a1a 0%, #0a1a0a 100%);
+            border: 1px solid #2a4a2a;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        .top-edges h2 { color: #00d4aa; margin-bottom: 16px; font-size: 18px; }
+
+        .signal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+        }
+
+        .signal-card {
+            background: #12121a;
+            border: 1px solid #2a2a3a;
+            border-radius: 8px;
+            padding: 16px;
+            transition: border-color 0.2s;
+        }
+        .signal-card:hover { border-color: #00d4aa; }
+        .signal-card.buy-yes { border-left: 3px solid #00d4aa; }
+        .signal-card.buy-no { border-left: 3px solid #ff6b6b; }
+        .signal-card.info { border-left: 3px solid #4a9eff; }
+
+        .signal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .signal-label { font-weight: 600; font-size: 15px; }
+        .signal-badge {
+            padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;
+        }
+        .badge-yes { background: #0a2a1a; color: #00d4aa; }
+        .badge-no { background: #2a0a0a; color: #ff6b6b; }
+        .badge-info { background: #0a1a2a; color: #4a9eff; }
+
+        .signal-meta { font-size: 13px; color: #888; margin-bottom: 8px; }
+        .signal-probs { display: flex; gap: 20px; font-size: 14px; }
+        .signal-probs .model { color: #00d4aa; }
+        .signal-probs .market { color: #ff9f43; }
+        .signal-probs .edge { font-weight: 700; }
+        .edge-positive { color: #00d4aa; }
+        .edge-negative { color: #ff6b6b; }
+
+        .category-section { margin-bottom: 30px; }
+        .category-section h2 {
+            font-size: 18px; color: #fff; margin-bottom: 16px;
+            padding-bottom: 8px; border-bottom: 1px solid #2a2a3a;
+        }
+        .category-icon { margin-right: 8px; }
+
+        .ticker { font-family: monospace; font-size: 12px; color: #666; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 10px; color: #888; font-size: 13px; border-bottom: 1px solid #2a2a3a; }
+        td { padding: 10px; font-size: 14px; border-bottom: 1px solid #1a1a2a; }
+        tr:hover { background: #1a1a2a; }
+
+        .confidence-high { color: #00d4aa; }
+        .confidence-medium { color: #ff9f43; }
+        .confidence-low { color: #ff6b6b; }
+
+        .cta-bar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            border: 1px solid #2a4a6a;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .cta-bar h3 { color: #fff; margin-bottom: 8px; }
+        .cta-bar p { color: #aaa; margin-bottom: 16px; }
+        .cta-btn {
+            display: inline-block; padding: 12px 32px;
+            background: #00d4aa; color: #000; font-weight: 700;
+            border-radius: 8px; text-decoration: none; font-size: 16px;
+        }
+        .cta-btn:hover { background: #00b894; }
+
+        .api-section {
+            background: #12121a; border: 1px solid #2a2a3a;
+            border-radius: 8px; padding: 20px; margin-top: 20px;
+        }
+        .api-section h3 { color: #fff; margin-bottom: 12px; }
+        .api-section code {
+            display: block; background: #0a0a0f; padding: 12px;
+            border-radius: 6px; color: #00d4aa; font-size: 13px;
+            overflow-x: auto;
+        }
+
+        .stats-bar {
+            display: flex; gap: 20px; margin-bottom: 30px;
+        }
+        .stat {
+            background: #12121a; border: 1px solid #2a2a3a;
+            border-radius: 8px; padding: 16px 24px; flex: 1; text-align: center;
+        }
+        .stat .number { font-size: 28px; font-weight: 700; color: #00d4aa; }
+        .stat .label { font-size: 13px; color: #888; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span>Edge</span>Signals</h1>
+        <div>
+            <span class="meta">{{ now }}</span>
+            <a href="/pricing">Pricing</a>
+            <a href="/api/signals">API</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="number">{{ data.top_edges | length }}</div>
+                <div class="label">Active Signals</div>
+            </div>
+            <div class="stat">
+                <div class="number">{{ data.weather | length + data.crypto | length }}</div>
+                <div class="label">Markets Scanned</div>
+            </div>
+            <div class="stat">
+                <div class="number">3</div>
+                <div class="label">Categories</div>
+            </div>
+            <div class="stat">
+                <div class="number">5min</div>
+                <div class="label">Update Frequency</div>
+            </div>
+        </div>
+
+        <!-- Top Edges -->
+        {% if data.top_edges %}
+        <div class="top-edges">
+            <h2>Top Edge Signals</h2>
+            <div class="signal-grid">
+                {% for s in data.top_edges[:6] %}
+                <div class="signal-card {{ 'buy-yes' if 'YES' in s.signal else 'buy-no' if 'NO' in s.signal else 'info' }}">
+                    <div class="signal-header">
+                        <span class="signal-label">{{ s.label }}</span>
+                        <span class="signal-badge {{ 'badge-yes' if 'YES' in s.signal else 'badge-no' if 'NO' in s.signal else 'badge-info' }}">
+                            {{ s.signal }}
+                        </span>
+                    </div>
+                    <div class="signal-meta">
+                        {{ s.category | upper }}
+                        {% if s.city %} &middot; {{ s.city }}{% endif %}
+                        {% if s.asset %} &middot; {{ s.asset }}{% endif %}
+                    </div>
+                    <div class="signal-probs">
+                        <span class="model">Model: {{ (s.model_prob * 100) | round }}%</span>
+                        <span class="market">Market: {{ (s.market_prob * 100) | round }}%</span>
+                        <span class="edge {{ 'edge-positive' if s.edge > 0 else 'edge-negative' }}">
+                            Edge: {{ '%+.1f' % s.edge }}%
+                        </span>
+                    </div>
+                    <div class="ticker">{{ s.ticker }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Weather Section -->
+        <div class="category-section">
+            <h2>Weather Markets</h2>
+            {% if data.weather %}
+            <table>
+                <tr><th>City</th><th>Bracket</th><th>Signal</th><th>Model</th><th>Market</th><th>Edge</th><th>Confidence</th></tr>
+                {% for s in data.weather[:10] %}
+                <tr>
+                    <td>{{ s.city }}</td>
+                    <td>{{ s.label }}</td>
+                    <td><span class="signal-badge {{ 'badge-yes' if 'YES' in s.signal else 'badge-no' }}">{{ s.signal }}</span></td>
+                    <td>{{ (s.model_prob * 100) | round }}%</td>
+                    <td>{{ (s.market_prob * 100) | round }}%</td>
+                    <td class="{{ 'edge-positive' if s.edge > 0 else 'edge-negative' }}">{{ '%+.1f' % s.edge }}%</td>
+                    <td class="confidence-{{ s.confidence }}">{{ s.confidence }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p style="color: #666;">No weather signals found. Markets may be closed.</p>
+            {% endif %}
+        </div>
+
+        <!-- Crypto Section -->
+        <div class="category-section">
+            <h2>Crypto Arbitrage (Kalshi vs Deribit)</h2>
+            {% if data.crypto %}
+            <table>
+                <tr><th>Asset</th><th>Threshold</th><th>Signal</th><th>Deribit</th><th>Kalshi</th><th>Edge</th><th>Confidence</th></tr>
+                {% for s in data.crypto[:10] %}
+                <tr>
+                    <td>{{ s.asset }}</td>
+                    <td>{{ s.label }}</td>
+                    <td><span class="signal-badge {{ 'badge-yes' if 'YES' in s.signal else 'badge-no' }}">{{ s.signal }}</span></td>
+                    <td>{{ (s.model_prob * 100) | round }}%</td>
+                    <td>{{ (s.market_prob * 100) | round }}%</td>
+                    <td class="{{ 'edge-positive' if s.edge > 0 else 'edge-negative' }}">{{ '%+.1f' % s.edge }}%</td>
+                    <td class="confidence-{{ s.confidence }}">{{ s.confidence }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p style="color: #666;">No crypto arb signals found.</p>
+            {% endif %}
+        </div>
+
+        <!-- Economics Section -->
+        <div class="category-section">
+            <h2>Economic Data Markets</h2>
+            {% if data.economics %}
+            <table>
+                <tr><th>Market</th><th>Event</th><th>Market Price</th><th>Volume</th><th>Closes</th></tr>
+                {% for s in data.economics[:15] %}
+                <tr>
+                    <td>{{ s.label }}</td>
+                    <td>{{ s.event }}</td>
+                    <td>{{ (s.market_prob * 100) | round }}%</td>
+                    <td>{{ '{:,}'.format(s.volume) }}</td>
+                    <td>{{ s.close_date }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p style="color: #666;">No economic data signals.</p>
+            {% endif %}
+        </div>
+
+        <!-- API Section -->
+        <div class="api-section">
+            <h3>API Access</h3>
+            <p style="color: #888; margin-bottom: 12px;">Get signals programmatically for your trading bot.</p>
+            <code>curl https://your-domain.com/api/signals</code>
+            <p style="color: #888; margin-top: 12px; font-size: 13px;">
+                Endpoints: /api/signals/weather &middot; /api/signals/crypto &middot; /api/signals/economics
+            </p>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-bar">
+            <h3>Get Real-Time Alerts</h3>
+            <p>Be the first to know when high-confidence edges appear across weather, crypto, and economic markets.</p>
+            <a href="/pricing" class="cta-btn">View Plans</a>
+        </div>
+    </div>
+</body>
+</html>

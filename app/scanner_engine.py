@@ -131,9 +131,13 @@ def scan_weather():
 
 # ── Crypto Signals ──────────────────────────────────────────────────────────
 
+def _norm_cdf(x):
+    """Standard normal CDF using math.erf (no scipy needed)."""
+    return 0.5 * (1.0 + erf(x / sqrt(2.0)))
+
+
 def scan_crypto():
     """Run crypto arb scanner, return list of signal dicts."""
-    from scipy.stats import norm as scipy_norm
     signals = []
 
     for currency, series_prefix in [("BTC", "KXBTC"), ("ETH", "KXETH")]:
@@ -179,7 +183,7 @@ def scan_crypto():
                     continue
 
                 d2 = (log(spot / strike) + (-0.5 * iv**2) * tte) / (iv * sqrt(tte))
-                prob = scipy_norm.cdf(d2)
+                prob = _norm_cdf(d2)
                 expiry_str = expiry.strftime("%Y-%m-%d")
                 curve[(expiry_str, strike)] = prob
 

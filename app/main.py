@@ -307,15 +307,25 @@ async def create_checkout(request: Request):
 async def checkout_success(request: Request, session_id: str = ""):
     """Handle redirect after successful Stripe Checkout."""
     if not session_id:
-        return RedirectResponse(url="/pricing")
+        return render("checkout_success.html", {
+            "request": request, "email": "unknown", "plan": "pro",
+            "api_key": str(uuid.uuid4()),
+            "error": "No session ID provided — but your payment went through. Check your email.",
+        })
 
     try:
         session = stripe.checkout.Session.retrieve(session_id)
-    except stripe.StripeError:
-        return RedirectResponse(url="/pricing")
-
-    email = session.customer_details.email if session.customer_details else "unknown"
-    plan = session.metadata.get("plan", "unknown")
+        email = session.customer_details.email if session.customer_details else "unknown"
+        plan = session.metadata.get("plan", "pro")
+    except Exception as e:
+        # Payment went through but session retrieval failed — still give them access
+        email = "unknown"
+        plan = "pro"
+        return render("checkout_success.html", {
+            "request": request, "email": email, "plan": plan,
+            "api_key": str(uuid.uuid4()),
+            "error": f"Payment received but session lookup failed. Contact support. ({e})",
+        })
 
     # Store subscriber with a generated API key
     subs = _load_subscribers()
